@@ -69,13 +69,13 @@ REST_FRAMEWORK = {
 AUTHENTICATION_BACKENDS = [
     'django.contrib.auth.backends.ModelBackend',
 ]
-# gedsihub/settings.py
 
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:3000",
 ]
 
-# gedsihub/settings.py
+# URL where your backend is running
+BACKEND_URL = 'http://localhost:8000'  # Assuming your Django backend is running on port 8000
 
 CORS_ALLOW_ALL_ORIGINS = True
 
@@ -180,6 +180,3 @@ EMAIL_USE_TLS = True
 EMAIL_HOST_USER = config('EMAIL_HOST_USER')
 EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD')
 DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
-
-CELERY_BROKER_URL = 'redis://localhost:6379/0'
-CELERY_RESULT_BACKEND = 'redis://localhost:6379/0'

@@ -10,7 +10,6 @@ from django.core.mail import send_mail
 from django.conf import settings
 from .serializers import UserSerializer
 from .models import CustomUser
-from .tasks import send_activation_email_task
 
 class RegisterView(generics.CreateAPIView):
     queryset = CustomUser.objects.all()
@@ -25,20 +24,33 @@ class RegisterView(generics.CreateAPIView):
     def get_activation_link(self, user):
         uid = urlsafe_base64_encode(force_bytes(user.pk))
         token = default_token_generator.make_token(user)
-        return f"{settings.FRONTEND_URL}/activate/{uid}/{token}"
+        return f"{settings.BACKEND_URL}/api/users/activate/{uid}/{token}"
 
     def send_activation_email(self, email, activation_link):
-        send_activation_email_task.delay(email, activation_link)
-        
+        subject = "Activate your account"
+        message = f"Click the following link to activate your account: {activation_link}"
+        send_mail(
+            subject,
+            message,
+            settings.DEFAULT_FROM_EMAIL,
+            [email],
+            fail_silently=False,
+        )
 
 class ActivateAccountView(generics.GenericAPIView):
     permission_classes = (AllowAny,)
 
     def get(self, request, uidb64, token):
+        print(f"Received UIDB64: {uidb64}")
+        print(f"Received Token: {token}")
+        
         try:
             uid = force_str(urlsafe_base64_decode(uidb64))
+            print(f"Decoded UID: {uid}")
             user = CustomUser.objects.get(pk=uid)
-        except (TypeError, ValueError, OverflowError, CustomUser.DoesNotExist):
+            print(f"User found: {user}")
+        except (TypeError, ValueError, OverflowError, CustomUser.DoesNotExist) as e:
+            print(f"Error: {e}")
             user = None
 
         if user is not None and default_token_generator.check_token(user, token):
