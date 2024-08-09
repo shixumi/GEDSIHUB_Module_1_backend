@@ -1,0 +1,14 @@
+# Python
+*.pyc
+*.pyo
+*.pyd
+__pycache__/
+.pytest_cache/
+
+# Virtual environment
+venv/
+
+# Django specific
+*.sqlite3
+db.sqlite3
+.env
