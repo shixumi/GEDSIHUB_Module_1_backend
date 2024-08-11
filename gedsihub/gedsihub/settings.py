@@ -46,6 +46,7 @@ INSTALLED_APPS = [
     'chatbot',
     'corsheaders',
     'lms',
+    'forum',
 ]
 
 MIDDLEWARE = [
@@ -78,7 +79,6 @@ CORS_ALLOWED_ORIGINS = [
 BACKEND_URL = 'http://localhost:8000'  # Assuming your Django backend is running on port 8000
 
 CORS_ALLOW_ALL_ORIGINS = True
-
 
 ROOT_URLCONF = 'gedsihub.urls'
 

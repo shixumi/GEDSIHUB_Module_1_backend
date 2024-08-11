@@ -1,6 +1,7 @@
+# lmshub/lms/views.py
 from rest_framework import viewsets
-from .models import Course, Module, Content, Assessment, Certificate, Enrollment, Flair, Forum, Comment
-from .serializers import CourseSerializer, ModuleSerializer, ContentSerializer, AssessmentSerializer, CertificateSerializer, EnrollmentSerializer, FlairSerializer, ForumSerializer, CommentSerializer
+from .models import Course, Module, Content, Assessment, Certificate, Enrollment, Flair
+from .serializers import CourseSerializer, ModuleSerializer, ContentSerializer, AssessmentSerializer, CertificateSerializer, EnrollmentSerializer, FlairSerializer
 
 class CourseViewSet(viewsets.ModelViewSet):
     queryset = Course.objects.all()
@@ -29,11 +30,3 @@ class EnrollmentViewSet(viewsets.ModelViewSet):
 class FlairViewSet(viewsets.ModelViewSet):
     queryset = Flair.objects.all()
     serializer_class = FlairSerializer
-
-class ForumViewSet(viewsets.ModelViewSet):
-    queryset = Forum.objects.all()
-    serializer_class = ForumSerializer
-
-class CommentViewSet(viewsets.ModelViewSet):
-    queryset = Comment.objects.all()
-    serializer_class = CommentSerializer

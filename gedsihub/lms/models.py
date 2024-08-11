@@ -1,6 +1,6 @@
+# lmshub/lms/models.py
 from django.db import models
 from django.contrib.auth import get_user_model
-from django.utils import timezone
 
 User = get_user_model()
 
@@ -30,6 +30,7 @@ class Content(models.Model):
         ('text', 'Text'),
         ('video', 'Video'),
         ('image', 'Image'),
+        ('h5p', 'H5P'),  # Add H5P as a content type
     ]
 
     module = models.ForeignKey(Module, related_name='contents', on_delete=models.CASCADE)
@@ -37,6 +38,7 @@ class Content(models.Model):
     text_content = models.TextField(blank=True, null=True)
     video_url = models.URLField(blank=True, null=True)
     image_url = models.URLField(blank=True, null=True)
+    h5p_url = models.URLField(blank=True, null=True)  # Field for H5P content
     position = models.PositiveIntegerField(null=True)
 
     class Meta:
@@ -47,8 +49,8 @@ class Content(models.Model):
 
 class Assessment(models.Model):
     module = models.OneToOneField(Module, related_name='assessment', on_delete=models.CASCADE)
-    title = models.CharField(max_length=255, default="Module")
-    questions = models.JSONField(null=True)  # Simplified, you can expand this model based on assessment needs
+    title = models.CharField(max_length=255, default="Module Assessment")
+    questions = models.JSONField(null=True)  # Consider expanding this for complex assessments
     passing_grade = models.PositiveIntegerField(null=True)
 
     def __str__(self):
@@ -60,7 +62,7 @@ class Certificate(models.Model):
     issued_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return f'Certificate for {self.user.username} - {self.module.title}'
+        return f'Certificate for {self.user.email} - {self.module.title}'
 
 class Enrollment(models.Model):
     user = models.ForeignKey(User, related_name='enrollments', on_delete=models.CASCADE)
@@ -70,31 +72,10 @@ class Enrollment(models.Model):
     enrolled_at = models.DateTimeField(auto_now_add=True, null=True)
 
     def __str__(self):
-        return f'{self.user.username} enrolled in {self.course.title}'
+        return f'{self.user.email} enrolled in {self.course.title}'
 
 class Flair(models.Model):
     name = models.CharField(max_length=50)
 
     def __str__(self):
         return self.name
-
-class Forum(models.Model):
-    module = models.ForeignKey(Module, related_name='forums', on_delete=models.CASCADE)
-    title = models.CharField(max_length=255)
-    content = models.TextField()
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
-    flairs = models.ManyToManyField(Flair, related_name='forums')
-    user = models.ForeignKey(User, related_name='forums', on_delete=models.CASCADE)
-
-    def __str__(self):
-        return f'{self.title} in {self.module.title}'
-
-class Comment(models.Model):
-    forum = models.ForeignKey(Forum, related_name='comments', on_delete=models.CASCADE)
-    user = models.ForeignKey(User, related_name='comments', on_delete=models.CASCADE)
-    content = models.TextField()
-    created_at = models.DateTimeField(auto_now_add=True)
-
-    def __str__(self):
-        return f'Comment by {self.user.username} on {self.forum.title}'

@@ -1,5 +1,6 @@
+# lmshub/lms/serializers.py
 from rest_framework import serializers
-from .models import Course, Module, Content, Assessment, Certificate, Enrollment, Flair, Forum, Comment
+from .models import Course, Module, Content, Assessment, Certificate, Enrollment, Flair
 
 class CourseSerializer(serializers.ModelSerializer):
     class Meta:
@@ -36,14 +37,3 @@ class FlairSerializer(serializers.ModelSerializer):
         model = Flair
         fields = '__all__'
 
-class ForumSerializer(serializers.ModelSerializer):
-    flairs = FlairSerializer(many=True, read_only=True)
-
-    class Meta:
-        model = Forum
-        fields = '__all__'
-
-class CommentSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Comment
-        fields = '__all__'
