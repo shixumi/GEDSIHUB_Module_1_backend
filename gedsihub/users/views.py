@@ -18,23 +18,28 @@ class RegisterView(generics.CreateAPIView):
     def perform_create(self, serializer):
         user = serializer.save()
         activation_link = self.get_activation_link(user)
+        print(f"Activation link generated: {activation_link}")  # Debugging line
         self.send_activation_email(user.email, activation_link)
 
     def get_activation_link(self, user):
         uid = urlsafe_base64_encode(force_bytes(user.pk))
         token = default_token_generator.make_token(user)
-        return f"{settings.BACKEND_URL}/api/users/activate/{uid}/{token}"
+        return f"{settings.FRONTEND_URL}/api/users/activate/{uid}/{token}"
 
     def send_activation_email(self, email, activation_link):
         subject = "Activate your account"
         message = f"Click the following link to activate your account: {activation_link}"
-        send_mail(
-            subject,
-            message,
-            settings.DEFAULT_FROM_EMAIL,
-            [email],
-            fail_silently=False,
-        )
+        try:    
+            send_mail(
+                subject,
+                message,
+                settings.DEFAULT_FROM_EMAIL,
+                [email],
+                fail_silently=False,
+            )
+            print(f"Activation email sent to {email}")  # Debugging line
+        except Exception as e:
+            print(f"Error sending activation email: {e}")  # Debugging line
 
 class UserProfileCompletionView(generics.GenericAPIView):
     permission_classes = [IsAuthenticated]
@@ -52,11 +57,20 @@ class UserProfileCompletionView(generics.GenericAPIView):
         if not serializer_class:
             return Response({"error": "Invalid user type"}, status=status.HTTP_400_BAD_REQUEST)
 
-        serializer = serializer_class(request.user, data=request.data, partial=True)
+        profile = self.get_user_profile()
+        serializer = serializer_class(profile, data=request.data, partial=True)
         if serializer.is_valid():
             serializer.save()
             return Response({"message": "Profile updated successfully!"}, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def get_user_profile(self):
+        user = self.request.user
+        if user.role == 'Student':
+            return user.student
+        elif user.role == 'Employee':
+            return user.employee
+        raise ValidationError("Profile not found for the user.")
 
 class ActivateAccountView(generics.GenericAPIView):
     permission_classes = (AllowAny,)
@@ -71,6 +85,13 @@ class ActivateAccountView(generics.GenericAPIView):
         if default_token_generator.check_token(user, token):
             user.is_active = True
             user.save()
+            
+            # Profile creation based on role
+            if user.role == 'Student':
+                Student.objects.get_or_create(user=user)
+            elif user.role == 'Employee':
+                Employee.objects.get_or_create(user=user)
+            
             return Response({"message": "Account activated successfully!"}, status=status.HTTP_200_OK)
         else:
             return Response({"message": "Invalid activation link"}, status=status.HTTP_400_BAD_REQUEST)
@@ -92,7 +113,7 @@ class PasswordResetRequestView(generics.GenericAPIView):
     def get_reset_link(self, user):
         uid = urlsafe_base64_encode(force_bytes(user.pk))
         token = default_token_generator.make_token(user)
-        return f"{settings.BACKEND_URL}/reset-password/{uid}/{token}"
+        return f"{settings.FRONTEND_URL}/reset-password/{uid}/{token}"
 
     def send_reset_email(self, email, reset_link):
         subject = "Reset your password"
